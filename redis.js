@@ -85,7 +85,6 @@ redis.expire = function(key, timeout) {
 	redis._.exp_list[key] = setInterval(function() {
 		redis._.exp_timer[key] -= 1;
 		if(redis._.exp_timer[key] === 0) {
-			console.log('delete', key);
 			redis.del(key);
 			redis._.exp_list[key] = null;
 			redis._.exp_timer[key] = null;
