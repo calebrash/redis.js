@@ -48,16 +48,24 @@ var redis = {
 		zrsort: function(list) {
 			console.log('zrsort');
 			return list;
+		},
+		exp_list: {},
+		exp_timer: {},
+		unexpire: function(key) {
+			clearInterval(this.exp_list[key]);
+			this.exp_list[key] = null;
 		}
 	}
 };
 
 redis.set = function(key, value) {
+	redis._.unexpire(key);
 	wafer.set(key, value);
 };
 
 redis.setnx = function(key, value) {
 	if(wafer.get(key) === null) {
+		redis._.unexpire(key);
 		wafer.set(key, value);
 	}
 };
@@ -67,10 +75,33 @@ redis.get = function(key) {
 };
 
 redis.del = function(key) {
+	redis._.unexpire(key);
 	return wafer.remove(key);
 };
 
+redis.expire = function(key, timeout) {
+	redis._.unexpire(key);
+	redis._.exp_timer[key] = timeout;
+	redis._.exp_list[key] = setInterval(function() {
+		redis._.exp_timer[key] -= 1;
+		if(redis._.exp_timer[key] === 0) {
+			console.log('delete', key);
+			redis.del(key);
+			redis._.exp_list[key] = null;
+			redis._.exp_timer[key] = null;
+		}
+	}, 1000);
+};
+
+redis.ttl = function(key) {
+	if(typeof redis._.exp_list[key] == 'undefined' || redis._.exp_list[key] === null) {
+		return -1;
+	}
+	return redis._.exp_timer[key];
+};
+
 redis.incr = function(key) {
+	redis._.unexpire(key);
 	var value = wafer.get(key) || 0;
 	if(isNaN(value) && parseFloat(value) == NaN) {
 		return null;
@@ -81,6 +112,7 @@ redis.incr = function(key) {
 };
 
 redis.rpush = function(key, value) {
+	redis._.unexpire(key);
 	var r = wafer.get(key) || [];
 	r.push(value);
 	wafer.set(key, r);
@@ -88,6 +120,7 @@ redis.rpush = function(key, value) {
 };
 
 redis.lpush = function(key, value) {
+	redis._.unexpire(key);
 	var r = wafer.get(key) || [];
 	r.unshift(value);
 	wafer.set(key, r);
@@ -109,6 +142,7 @@ redis.llen = function(key) {
 };
 
 redis.rpop = function(key) {
+	redis._.unexpire(key);
 	var r = wafer.get(key) || [];
 	r = r.splice(0, r.length-1);
 	wafer.set(key, '');
@@ -117,6 +151,7 @@ redis.rpop = function(key) {
 };
 
 redis.lpop = function(key) {
+	redis._.unexpire(key);
 	var r = wafer.get(key) || [];
 	r = r.splice(1, r.length);
 	wafer.set(key, '');
@@ -124,6 +159,7 @@ redis.lpop = function(key) {
 };
 
 redis.sadd = function(key, value) {
+	redis._.unexpire(key);
 	var r = wafer.get(key) || {};
 	r[value] = true;
 	wafer.set(key, '');
@@ -132,6 +168,7 @@ redis.sadd = function(key, value) {
 };
 
 redis.srem = function(key, value) {
+	redis._.unexpire(key);
 	var r = wafer.get(key) || {};
 	if(r[value] === true) {
 		delete r[value];
@@ -173,6 +210,7 @@ redis.sunion = function(key1, key2) {
 };
 
 redis.zadd = function(key, score, value) {
+	redis._.unexpire(key);
 	var r = wafer.get(key) || [];
 	r.push({ score:score, value:value });
 	wafer.set(key, '');
