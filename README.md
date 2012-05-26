@@ -31,12 +31,14 @@ redis.cmd('SET test "t2"');
 ##Supported commands
 
 The following list is the current list of Redis commands supported by Redis.js. These are intended to function just as their Redis counterparts, so for detailed usage, view the Redis docs:
-http://redis.io/documentation
+http://redis.io/commands
 
 - set(key, value)
 - setnx(key, value)
 - get(key)
 - del(key)
+- expire(key, timeout)
+- ttl(key)
 - incr(key)
 - rpush(key, value)
 - lpush(key, value)
