@@ -144,7 +144,6 @@ redis.rpop = function(key) {
 	redis._.unexpire(key);
 	var r = wafer.get(key) || [];
 	r = r.splice(0, r.length-1);
-	wafer.set(key, '');
 	wafer.set(key, r);
 	return r;
 };
@@ -153,7 +152,6 @@ redis.lpop = function(key) {
 	redis._.unexpire(key);
 	var r = wafer.get(key) || [];
 	r = r.splice(1, r.length);
-	wafer.set(key, '');
 	wafer.set(key, r);
 };
 
@@ -161,7 +159,6 @@ redis.sadd = function(key, value) {
 	redis._.unexpire(key);
 	var r = wafer.get(key) || {};
 	r[value] = true;
-	wafer.set(key, '');
 	wafer.set(key, r);
 	return r;
 };
@@ -172,7 +169,6 @@ redis.srem = function(key, value) {
 	if(r[value] === true) {
 		delete r[value];
 	}
-	wafer.set(key, '');
 	wafer.set(key, r);
 	return r;
 };
@@ -212,7 +208,6 @@ redis.zadd = function(key, score, value) {
 	redis._.unexpire(key);
 	var r = wafer.get(key) || [];
 	r.push({ score:score, value:value });
-	wafer.set(key, '');
 	wafer.set(key, r);
 	return redis._.zlist(r);
 };
