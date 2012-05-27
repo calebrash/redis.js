@@ -1,0 +1,3 @@
+[submodule "Wafer"]
+	path = Wafer
+	url = git@github.com:calebrash/Wafer.git
