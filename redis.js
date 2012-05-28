@@ -4,6 +4,7 @@
 
 var redis = {
 	_: {
+		stats: {},
 		zlist: function(list, reverse) {
 			reverse = reverse || false;
 			var r = [],
@@ -100,6 +101,18 @@ redis.bitop = function() {
 	wafer.set(destkey, s);
 	return s;
 }
+
+redis.config = {
+	get: function(parameter) {
+		return this[parameter];
+	},
+	set: function(parameter, value) {
+		this[parameter] = value;
+	},
+	resetstat: function() {
+		redis._.stats = {};
+	}
+};
 
 redis.set = function(key, value) {
 	redis._.unexpire(key);
