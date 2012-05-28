@@ -75,106 +75,10 @@ var redis = {
 };
 
 
-redis.append = function(key, value) {
-	var r = wafer.get(key) + value;
-	wafer.set(key, r);
-	return r;
-}
 
-redis.auth = function(password) {
-	return redis._.status.empty;
-}
+// ----- KEY FUNCTIONS ----- //
 
-redis.bgrewriteaof = function() {
-	return redis._.status.empty;
-}
-
-redis.bgsave = function() {
-	return redis._.status.empty;
-}
-
-redis.bitcount = function() {
-	return redis._.status.empty;
-}
-
-redis.bitop = function() {
-	var op = arguments[0].toLowerCase(),
-		destkey = arguments[1]
-		i = 2,
-		l = arguments.length,
-		r = null,
-		s = null;
-	for(i; i<l; i++) {
-		r = wafer.get(arguments[i]) || 0;
-		switch(op) {
-			case 'and': s = s === null ? r : s & r; break;
-			case 'or':  s = s === null ? r : s | r; break;
-			case 'xor': s = s === null ? r : s ^ r; break;
-			case 'not': s = s === null ? r : ~r; break;
-		}
-	}
-	wafer.set(destkey, s);
-	return s;
-}
-
-redis.config = {
-	get: function(parameter) {
-		return this[parameter];
-	},
-	set: function(parameter, value) {
-		this[parameter] = value;
-		return redis._.status.ok;
-	},
-	resetstat: function() {
-		redis._.stats = {};
-		return redis._.status.ok;
-	}
-};
-
-redis.dbsize = function() {
-	var i = 0;
-	for(member in redis._.keys.list) {
-		i++;
-	}
-	return i;
-};
-
-redis.decr = function(key) {
-	redis.decrby(key, 1);
-}
-
-redis.decrby = function(key, decrement) {
-	redis._.unexpire(key);
-	var value = wafer.get(key) || 0;
-	if(isNaN(value) && parseFloat(value) == NaN) {
-		return null;
-	}
-	value = parseFloat(value) - decrement;
-	wafer.set(key, value);
-	return value;
-}
-
-redis.set = function(key, value) {
-	redis._.unexpire(key);
-	wafer.set(key, value);
-	redis._.keys.add(key);
-	return redis._.status.ok;
-};
-
-redis.setnx = function(key, value) {
-	if(wafer.get(key) === null) {
-		redis._.unexpire(key);
-		wafer.set(key, value);
-		redis._.keys.add(key);
-	}
-	return redis._.status.ok;
-};
-
-redis.get = function(key) {
-	return wafer.get(key);
-};
-
-redis.del = function(key) {
+ redis.del = function(key) {
 	redis._.unexpire(key);
 	redis._.keys.remove(key);
 	return wafer.remove(key);
@@ -201,6 +105,59 @@ redis.ttl = function(key) {
 	return redis._.exp_timer[key];
 };
 
+
+
+// ----- STRING FUNCTIONS ----- //
+
+redis.append = function(key, value) {
+	var r = wafer.get(key) + value;
+	wafer.set(key, r);
+	return r;
+}
+
+redis.bitcount = function() {
+	return redis._.status.empty;
+}
+
+redis.bitop = function() {
+	var op = arguments[0].toLowerCase(),
+		destkey = arguments[1]
+		i = 2,
+		l = arguments.length,
+		r = null,
+		s = null;
+	for(i; i<l; i++) {
+		r = wafer.get(arguments[i]) || 0;
+		switch(op) {
+			case 'and': s = s === null ? r : s & r; break;
+			case 'or':  s = s === null ? r : s | r; break;
+			case 'xor': s = s === null ? r : s ^ r; break;
+			case 'not': s = s === null ? r : ~r; break;
+		}
+	}
+	wafer.set(destkey, s);
+	return s;
+}
+
+redis.decr = function(key) {
+	return redis.decrby(key, 1);
+}
+
+redis.decrby = function(key, decrement) {
+	redis._.unexpire(key);
+	var value = wafer.get(key) || 0;
+	if(isNaN(value) && parseFloat(value) == NaN) {
+		return null;
+	}
+	value = parseFloat(value) - decrement;
+	wafer.set(key, value);
+	return value;
+}
+
+redis.get = function(key) {
+	return wafer.get(key);
+};
+
 redis.incr = function(key) {
 	redis._.unexpire(key);
 	var value = wafer.get(key) || 0;
@@ -212,13 +169,49 @@ redis.incr = function(key) {
 	return value;
 };
 
-redis.rpush = function(key, value) {
+redis.set = function(key, value) {
+	redis._.unexpire(key);
+	wafer.set(key, value);
+	redis._.keys.add(key);
+	return redis._.status.ok;
+};
+
+redis.setnx = function(key, value) {
+	if(wafer.get(key) === null) {
+		redis._.unexpire(key);
+		wafer.set(key, value);
+		redis._.keys.add(key);
+	}
+	return redis._.status.ok;
+};
+
+
+// ----- HASH FUNCTIONS ----- //
+
+
+
+// ----- LIST FUNCTIONS ----- //
+
+redis.lindex = function(key, index) {
+	var r = wafer.get(key) || [];
+	index = index == -1 ? r.length - 1 : index;
+	return r[index] || redis._.status.empty;
+};
+
+redis.llen = function(key) {
+	var r = wafer.get(key) || [];
+	if(typeof r === 'array' || typeof r === 'object') {
+		return r.length;
+	}
+	return redis._.status.empty;
+};
+
+redis.lpop = function(key) {
 	redis._.unexpire(key);
 	var r = wafer.get(key) || [];
-	r.push(value);
+	r = r.splice(1, r.length);
 	wafer.set(key, r);
-	redis._.keys.add(key);
-	return r;
+	return redis._.status.ok;
 };
 
 redis.lpush = function() {
@@ -241,19 +234,14 @@ redis.lrange = function(key, start, end) {
 	return r.splice(start, end);
 };
 
-redis.llen = function(key) {
+redis.rpush = function(key, value) {
+	redis._.unexpire(key);
 	var r = wafer.get(key) || [];
-	if(typeof r === 'array' || typeof r === 'object') {
-		return r.length;
-	}
-	return redis._.status.empty;
+	r.push(value);
+	wafer.set(key, r);
+	redis._.keys.add(key);
+	return r;
 };
-
-redis.lindex = function(key, index) {
-	var r = wafer.get(key) || [];
-	index = index == -1 ? r.length - 1 : index;
-	return r[index] || redis._.status.empty;
-}
 
 redis.rpop = function(key) {
 	redis._.unexpire(key);
@@ -264,13 +252,9 @@ redis.rpop = function(key) {
 	return r;
 };
 
-redis.lpop = function(key) {
-	redis._.unexpire(key);
-	var r = wafer.get(key) || [];
-	r = r.splice(1, r.length);
-	wafer.set(key, r);
-	return redis._.status.ok;
-};
+
+
+// ----- SET FUNCTIONS ------ //
 
 redis.sadd = function(key, value) {
 	redis._.unexpire(key);
@@ -278,16 +262,6 @@ redis.sadd = function(key, value) {
 	r[value] = true;
 	wafer.set(key, r);
 	redis._.keys.add(key);
-	return r;
-};
-
-redis.srem = function(key, value) {
-	redis._.unexpire(key);
-	var r = wafer.get(key) || {};
-	if(r[value] === true) {
-		delete r[value];
-	}
-	wafer.set(key, r);
 	return r;
 };
 
@@ -303,6 +277,16 @@ redis.smembers = function(key) {
 		l.push(member);
 	}
 	return l;
+};
+
+redis.srem = function(key, value) {
+	redis._.unexpire(key);
+	var r = wafer.get(key) || {};
+	if(r[value] === true) {
+		delete r[value];
+	}
+	wafer.set(key, r);
+	return r;
 };
 
 redis.sunion = function() {
@@ -323,6 +307,10 @@ redis.sunion = function() {
 	return l;
 };
 
+
+
+// ----- SORTED SET FUNCTIONS ----- //
+
 redis.zadd = function(key, score, value) {
 	redis._.unexpire(key);
 	var r = wafer.get(key) || [];
@@ -340,7 +328,59 @@ redis.zrange = function(key, start, end) {
 
 
 
+// ----- PUB/SUB FUNCTIONS ----- //
 
+
+// ----- TRANSACTION FUNCTIONS ----- //
+
+
+// ----- SCRIPTING FUNCTIONS ----- //
+
+
+// ----- CONNECTION FUNCTIONS ----- //
+
+redis.auth = function(password) {
+	return redis._.status.empty;
+}
+
+
+
+// ----- SERVER FUNCTIONS ----- //
+
+redis.bgrewriteaof = function() {
+	return redis._.status.empty;
+}
+
+redis.bgsave = function() {
+	return redis._.status.empty;
+};
+
+
+redis.config = {
+	get: function(parameter) {
+		return this[parameter];
+	},
+	set: function(parameter, value) {
+		this[parameter] = value;
+		return redis._.status.ok;
+	},
+	resetstat: function() {
+		redis._.stats = {};
+		return redis._.status.ok;
+	}
+};
+
+redis.dbsize = function() {
+	var i = 0;
+	for(member in redis._.keys.list) {
+		i++;
+	}
+	return i;
+};
+
+
+
+// ----- REDIS-STYLE COMMANDS ----- //
 
 redis.cmd = function(command) {
 	var cmd = command.split(' ');
@@ -360,6 +400,7 @@ redis.cmd = function(command) {
 
 
 
+// ----- ONLOAD ----- //
 
 var _onload = window.onload;
 window.onload = function() {
