@@ -2,9 +2,25 @@
 <html lang="en-us">
 <head>
 	<title>Redis.js Test</title>
+	<link rel="stylesheet" type="text/css" href="jasmine/lib/jasmine-core/jasmine.css">
+	<script type="text/javascript" src="jasmine/lib/jasmine-core/jasmine.js"></script>
+	<script type="text/javascript" src="jasmine/lib/jasmine-core/jasmine-html.js"></script>
 	<script type="text/javascript" src="wafer/wafer.js"></script>
 	<script type="text/javascript" src="redis.js"></script>
+	<script type="text/javascript" src="tests.js"></script>
 	<script type="text/javascript">
+		(function() {
+			var jenv = jasmine.getEnv();
+			jenv.updateInterval = 1000;
+			var tr = new jasmine.TrivialReporter();
+			jenv.addReporter(tr);
+			jenv.specFilter = function(spec) {
+				tr.specFilter(spec);
+			};
+			window.onload = function() {
+				jenv.execute();
+			};
+		})();
 	</script>
 </head>
 
