@@ -194,16 +194,17 @@ redis.smembers = function(key) {
 	return l;
 };
 
-redis.sunion = function(key1, key2) {
+redis.sunion = function() {
 	var unioned = {},
 		l = [],
-		r1 = wafer.get(key1) || {},
-		r2 = wafer.get(key2) || {};
-	for(member in r1) {
-		unioned[member] = true;
-	}
-	for(member in r2) {
-		unioned[member] = true;
+		r = {},
+		argsl = arguments.length,
+		i = 0;
+	for(i; i<argsl; i++) {
+		r = wafer.get(arguments[i]);
+		for(member in r) {
+			unioned[member] = true;
+		}
 	}
 	for(member in unioned) {
 		l.push(member);
