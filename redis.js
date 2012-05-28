@@ -5,6 +5,10 @@
 var redis = {
 	_: {
 		stats: {},
+		status: {
+			ok: 'ok',
+			empty: null
+		},
 		zlist: function(list, reverse) {
 			reverse = reverse || false;
 			var r = [],
@@ -67,19 +71,19 @@ redis.append = function(key, value) {
 }
 
 redis.auth = function(password) {
-	return null;
+	return redis._.status.empty;
 }
 
 redis.bgrewriteaof = function() {
-	return null;
+	return redis._.status.empty;
 }
 
 redis.bgsave = function() {
-	return null;
+	return redis._.status.empty;
 }
 
 redis.bitcount = function() {
-	return null;
+	return redis._.status.empty;
 }
 
 redis.bitop = function() {
@@ -108,15 +112,18 @@ redis.config = {
 	},
 	set: function(parameter, value) {
 		this[parameter] = value;
+		return redis._.status.ok;
 	},
 	resetstat: function() {
 		redis._.stats = {};
+		return redis._.status.ok;
 	}
 };
 
 redis.set = function(key, value) {
 	redis._.unexpire(key);
 	wafer.set(key, value);
+	return redis._.status.ok;
 };
 
 redis.setnx = function(key, value) {
@@ -124,6 +131,7 @@ redis.setnx = function(key, value) {
 		redis._.unexpire(key);
 		wafer.set(key, value);
 	}
+	return redis._.status.ok;
 };
 
 redis.get = function(key) {
@@ -146,6 +154,7 @@ redis.expire = function(key, timeout) {
 			redis._.exp_timer[key] = null;
 		}
 	}, 1000);
+	return redis._.status.ok;
 };
 
 redis.ttl = function(key) {
@@ -198,13 +207,13 @@ redis.llen = function(key) {
 	if(typeof r === 'array' || typeof r === 'object') {
 		return r.length;
 	}
-	return null;
+	return redis._.status.empty;
 };
 
 redis.lindex = function(key, index) {
 	var r = wafer.get(key) || [];
 	index = index == -1 ? r.length - 1 : index;
-	return r[index] || null;
+	return r[index] || redis._.status.empty;
 }
 
 redis.rpop = function(key) {
@@ -220,6 +229,7 @@ redis.lpop = function(key) {
 	var r = wafer.get(key) || [];
 	r = r.splice(1, r.length);
 	wafer.set(key, r);
+	return redis._.status.ok;
 };
 
 
@@ -304,5 +314,6 @@ redis.cmd = function(command) {
 		return redis[func](key, value);
 	} catch(e) {
 		throw new Error('Redis command could not be parsed.');
+		return redis._.status.null;
 	}
 };
