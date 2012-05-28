@@ -139,7 +139,20 @@ redis.dbsize = function() {
 	return i;
 };
 
+redis.decr = function(key) {
+	redis.decrby(key, 1);
+}
 
+redis.decrby = function(key, decrement) {
+	redis._.unexpire(key);
+	var value = wafer.get(key) || 0;
+	if(isNaN(value) && parseFloat(value) == NaN) {
+		return null;
+	}
+	value = parseFloat(value) - decrement;
+	wafer.set(key, value);
+	return value;
+}
 
 redis.set = function(key, value) {
 	redis._.unexpire(key);
