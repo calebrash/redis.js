@@ -9,6 +9,17 @@ var redis = {
 			ok: 'ok',
 			empty: null
 		},
+		keys: {
+			list: {},
+			add: function(key) {
+				this.list[key] = true;
+				wafer.set('redis__keys', this.list);
+			},
+			remove: function(key) {
+				delete this.list[key];
+				wafer.set('redis__keys', this.list);
+			}
+		},
 		zlist: function(list, reverse) {
 			reverse = reverse || false;
 			var r = [],
@@ -120,9 +131,20 @@ redis.config = {
 	}
 };
 
+redis.dbsize = function() {
+	var i = 0;
+	for(member in redis._.keys.list) {
+		i++;
+	}
+	return i;
+};
+
+
+
 redis.set = function(key, value) {
 	redis._.unexpire(key);
 	wafer.set(key, value);
+	redis._.keys.add(key);
 	return redis._.status.ok;
 };
 
@@ -130,6 +152,7 @@ redis.setnx = function(key, value) {
 	if(wafer.get(key) === null) {
 		redis._.unexpire(key);
 		wafer.set(key, value);
+		redis._.keys.add(key);
 	}
 	return redis._.status.ok;
 };
@@ -140,6 +163,7 @@ redis.get = function(key) {
 
 redis.del = function(key) {
 	redis._.unexpire(key);
+	redis._.keys.remove(key);
 	return wafer.remove(key);
 };
 
@@ -180,6 +204,7 @@ redis.rpush = function(key, value) {
 	var r = wafer.get(key) || [];
 	r.push(value);
 	wafer.set(key, r);
+	redis._.keys.add(key);
 	return r;
 };
 
@@ -193,6 +218,7 @@ redis.lpush = function() {
 		r.unshift(arguments[i]);
 	}
 	wafer.set(key, r);
+	redis._.keys.add(key);
 	return r;
 };
 
@@ -221,6 +247,7 @@ redis.rpop = function(key) {
 	var r = wafer.get(key) || [];
 	r = r.splice(0, r.length-1);
 	wafer.set(key, r);
+	redis._.keys.add(key);
 	return r;
 };
 
@@ -232,13 +259,12 @@ redis.lpop = function(key) {
 	return redis._.status.ok;
 };
 
-
-
 redis.sadd = function(key, value) {
 	redis._.unexpire(key);
 	var r = wafer.get(key) || {};
 	r[value] = true;
 	wafer.set(key, r);
+	redis._.keys.add(key);
 	return r;
 };
 
@@ -289,6 +315,7 @@ redis.zadd = function(key, score, value) {
 	var r = wafer.get(key) || [];
 	r.push({ score:score, value:value });
 	wafer.set(key, r);
+	redis._.keys.add(key);
 	return redis._.zlist(r);
 };
 
@@ -317,3 +344,16 @@ redis.cmd = function(command) {
 		return redis._.status.null;
 	}
 };
+
+
+
+
+var _onload = window.onload;
+window.onload = function() {
+	if(typeof _onload == 'function') {
+		_onload();
+	}
+	redis._.keys.list = wafer.get('redis__keys');
+};
+
+

@@ -17,7 +17,9 @@
 			jenv.specFilter = function(spec) {
 				tr.specFilter(spec);
 			};
+			var _onld = window.onload;
 			window.onload = function() {
+				_onld();
 				jenv.execute();
 			};
 		})();
