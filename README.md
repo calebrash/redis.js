@@ -8,7 +8,7 @@ https://github.com/calebrash/Wafer
 
 ##Usage
 
-Redis.js tries to adhere to format of Redis as closely as possible.
+Redis.js tries to adhere to the original Redis command as closely as possible.
 
 ###Examples
 ```javascript
@@ -18,7 +18,7 @@ redis.get('test');   // => t1
 
 // Lists
 redis.lpush('test', 't1');   // => [ t1 ]
-redis.lpush('test', 't2');   // => [ t1, t2 ]
+redis.lpush('test', 't2');   // => [ t2, t1 ]
 redis.rpop('test');          // => [ t2 ]
 ```
 
