@@ -84,6 +84,16 @@ var redis = {
 	return wafer.remove(key);
 };
 
+redis.dump = function(key) {
+	return wafer.get(key);
+};
+
+redis.exists = function(key) {
+	var r = wafer.get(key) || false;
+
+	return r !== false;
+};
+
 redis.expire = function(key, timeout) {
 	redis._.unexpire(key);
 	redis._.exp_timer[key] = timeout;
