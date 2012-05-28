@@ -58,6 +58,15 @@ var redis = {
 	}
 };
 
+
+redis.append = function(key, value) {
+	var r = wafer.get(key) + value;
+	wafer.set(key, r);
+	return r;
+}
+
+
+
 redis.set = function(key, value) {
 	redis._.unexpire(key);
 	wafer.set(key, value);
