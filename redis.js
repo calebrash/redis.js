@@ -118,10 +118,15 @@ redis.rpush = function(key, value) {
 	return r;
 };
 
-redis.lpush = function(key, value) {
+redis.lpush = function() {
+	var key = arguments[0],
+		i = 1,
+		l = arguments.length,
+		r = wafer.get(key) || [];
 	redis._.unexpire(key);
-	var r = wafer.get(key) || [];
-	r.unshift(value);
+	for(i; i<l; i++) {
+		r.unshift(arguments[i]);
+	}
 	wafer.set(key, r);
 	return r;
 };
@@ -154,6 +159,8 @@ redis.lpop = function(key) {
 	r = r.splice(1, r.length);
 	wafer.set(key, r);
 };
+
+
 
 redis.sadd = function(key, value) {
 	redis._.unexpire(key);
@@ -211,13 +218,6 @@ redis.zadd = function(key, score, value) {
 	wafer.set(key, r);
 	return redis._.zlist(r);
 };
-
-/*
-redis.zlist = function(key) {
-	var r = wafer.get(key) || [];
-	return redis._.zlist(r);
-}
-*/
 
 redis.zrange = function(key, start, end) {
 	var r = redis._.zlist(wafer.get(key)) || [];
