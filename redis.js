@@ -81,6 +81,26 @@ redis.bitcount = function() {
 	return null;
 }
 
+redis.bitop = function() {
+	var op = arguments[0].toLowerCase(),
+		destkey = arguments[1]
+		i = 2,
+		l = arguments.length,
+		r = null,
+		s = null;
+	for(i; i<l; i++) {
+		r = wafer.get(arguments[i]) || 0;
+		switch(op) {
+			case 'and': s = s === null ? r : s & r; break;
+			case 'or':  s = s === null ? r : s | r; break;
+			case 'xor': s = s === null ? r : s ^ r; break;
+			case 'not': s = s === null ? r : ~r; break;
+		}
+	}
+	wafer.set(destkey, s);
+	return s;
+}
+
 redis.set = function(key, value) {
 	redis._.unexpire(key);
 	wafer.set(key, value);
