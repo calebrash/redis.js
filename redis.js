@@ -65,7 +65,9 @@ redis.append = function(key, value) {
 	return r;
 }
 
-
+redis.auth = function(password) {
+	return null;
+}
 
 redis.set = function(key, value) {
 	redis._.unexpire(key);
