@@ -145,6 +145,12 @@ redis.llen = function(key) {
 	return null;
 };
 
+redis.lindex = function(key, index) {
+	var r = wafer.get(key) || [];
+	index = index == -1 ? r.length - 1 : index;
+	return r[index] || null;
+}
+
 redis.rpop = function(key) {
 	redis._.unexpire(key);
 	var r = wafer.get(key) || [];
