@@ -73,6 +73,10 @@ redis.bgrewriteaof = function() {
 	return null;
 }
 
+redis.bgsave = function() {
+	return null;
+}
+
 redis.set = function(key, value) {
 	redis._.unexpire(key);
 	wafer.set(key, value);
