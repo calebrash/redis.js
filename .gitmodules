@@ -1,3 +1,6 @@
 [submodule "wafer"]
 	path = wafer
 	url = git@github.com:calebrash/Wafer.git
+[submodule "jasmine"]
+	path = jasmine
+	url = https://github.com/pivotal/jasmine.git
